@@ -1,0 +1,16 @@
+[
+  {
+    "role": "user",
+    "parts": [
+      "hi"
+    ],
+    "timestamp": "19-05-2025_03-05-23 PM"
+  },
+  {
+    "role": "model",
+    "parts": [
+      "Hi there! How can I help you today?"
+    ],
+    "timestamp": "19-05-2025_03-05-23 PM"
+  }
+]

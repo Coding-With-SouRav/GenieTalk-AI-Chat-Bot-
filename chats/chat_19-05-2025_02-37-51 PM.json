@@ -1,0 +1,30 @@
+[
+  {
+    "role": "user",
+    "parts": [
+      "hi"
+    ],
+    "timestamp": "19-05-2025_02-37-51 PM"
+  },
+  {
+    "role": "model",
+    "parts": [
+      "Hi there! How can I help you today?"
+    ],
+    "timestamp": "19-05-2025_02-37-51 PM"
+  },
+  {
+    "role": "user",
+    "parts": [
+      "hellow"
+    ],
+    "timestamp": "19-05-2025_02-37-51 PM"
+  },
+  {
+    "role": "model",
+    "parts": [
+      "Hello!  How can I assist you?"
+    ],
+    "timestamp": "19-05-2025_02-37-51 PM"
+  }
+]
