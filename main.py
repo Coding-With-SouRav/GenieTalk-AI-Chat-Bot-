@@ -92,7 +92,6 @@ chat = model.start_chat(history=[])
 
 
 def resource_path(relative_path):
-    """ Get absolute path to resources for both dev and PyInstaller """
     try:
         base_path = sys._MEIPASS
     except Exception:
@@ -120,7 +119,6 @@ def load_window_geometry():
             elif state == "iconic":
                 root.iconify()
 
-
 def save_window_geometry():
     config = configparser.ConfigParser()
     config["Geometry"] = {
@@ -134,7 +132,6 @@ def track_geometry(event):
     global normal_geometry
     if root.state() == 'normal':
         normal_geometry = root.geometry()
-    # Refresh sidebar when window state changes
     if sidebar_shown:
         sidebar.place_configure(height=root.winfo_height())
 
@@ -219,7 +216,6 @@ def insert_message(msg, sender='user'):
         container = tk.Frame(message_frame, bg='#7876a9')
         container.pack(anchor='e', pady=30, padx=10)
 
-        # Create loader
         current_loader = CircularLoader(
             container,
             radius=10,
@@ -237,7 +233,7 @@ def insert_message(msg, sender='user'):
                             borderwidth=0,
                             padx=30, 
                             pady=20,
-                            state='normal',  # Changed from default to allow selection
+                            state='normal',  
                             insertwidth=0 
                             )
         label.pack(side=tk.RIGHT)
@@ -332,12 +328,11 @@ def animate_typing(label, full_text, typing_speed=0):
         stop_button.pack(side=tk.RIGHT, padx=5, pady=(0,5))
 
         if stop_requested or current_line_index >= len(processed_lines):
-            label.config(state='disabled')  # Disable after animation
+            label.config(state='disabled')
             stop_button.pack_forget()
             send_button.pack_forget()
             is_animating = False
             
-            # Final size adjustment
             max_length = max(len(line) for line in processed_lines) if processed_lines else 0
             label.config(
                 width=min(max_length, 60),
@@ -354,7 +349,6 @@ def animate_typing(label, full_text, typing_speed=0):
             current_line_index += 1
             current_char_index = 0
             
-            # Adjust size after each line
             lines_so_far = processed_lines[:current_line_index]
             current_max = max(len(line) for line in lines_so_far) if lines_so_far else 0
             label.config(
@@ -372,7 +366,7 @@ def animate_typing(label, full_text, typing_speed=0):
 
 def send_message(e=None):
     global is_processing, stop_requested, is_animating
-    if is_processing or is_animating:  # Add animation check
+    if is_processing or is_animating:
         return
     
     stop_requested = False
@@ -396,10 +390,10 @@ def get_gemini_response(user_message):
     try:
         is_processing = True
         response = chat.send_message(user_message)
-        cleaned_response = clean_and_format_text(response.text)  # Add this line
+        cleaned_response = clean_and_format_text(response.text)  
         
         if not stop_requested and app_running:  
-            root.after(0, lambda: insert_message(cleaned_response, "bot"))  # Use cleaned response
+            root.after(0, lambda: insert_message(cleaned_response, "bot"))  
     except Exception as e:
         if not stop_requested and app_running: 
             root.after(0, lambda: insert_message(f"Error: {str(e)}", "error"))
@@ -489,15 +483,12 @@ def clean_and_format_text(raw_text):
     text = re.sub(r'\*{1,2}', '', text)
     text = re.sub(r'\n(?=\d+\.\s)', '\n\n', text)
     text = re.sub(r'\n{2,}', '\n\n', text.strip())
-    # Split into paragraphs while preserving meaningful newlines
     paragraphs = [p.strip() for p in text.split('\n\n') if p.strip()]
     return '\n'.join(paragraphs)
 
 def handle_key_event(event):
-    # Allow Shift+Arrow keys for text selection
     if event.state & 0x1 and event.keysym in ('Left', 'Right', 'Up', 'Down'):
         return
-    # Block all other key events
     return "break"
 
 def load_chat_history(filename):
@@ -512,7 +503,6 @@ def load_chat_history(filename):
         chat = model.start_chat(history=[])
         
         for msg in history_data:
-            # Use the new content creation format
             chat.history.append({
                 'role': msg['role'],
                 'parts': [{'text': '\n'.join(msg['parts'])}]
@@ -524,7 +514,6 @@ def load_chat_history(filename):
             text = message['parts'][0]['text']
             insert_message(text, 'user' if role == 'user' else 'bot')
         
-        # Update title with formatted filename
         filename_without_ext = os.path.splitext(filename)[0]
         parts = filename_without_ext.split("_")
         if len(parts) >= 4:
@@ -573,7 +562,7 @@ def animate_hide():
 
 def on_resize(event):
     if sidebar_shown:
-        sidebar.place_configure(height=root.winfo_height())  # Force update
+        sidebar.place_configure(height=root.winfo_height()) 
     update_all_frame_geometry()
 
 def update_all_frame_geometry():
@@ -592,17 +581,14 @@ def start_new_chat():
     chat = model.start_chat(history=[])
     clear_chat_ui()
     
-    # Reset all processing states
     stop_requested = True
     is_processing = False
     is_animating = False
     
-    # Cancel any ongoing animation
     if current_animation_id:
         root.after_cancel(current_animation_id)
         current_animation_id = None
     
-    # Update UI
     stop_button.pack_forget()
     toggle_send_button()
     refresh_sidebar()
@@ -630,7 +616,6 @@ def save_current_chat():
     
     history = []
     for message in chat.history:
-        # Handle different message formats
         if isinstance(message, dict):
             role = message['role']
             parts = message['parts']
@@ -663,20 +648,16 @@ def save_current_chat():
         json.dump(history, f, indent=2, ensure_ascii=False, default=str)
 
 def clear_chat_ui():
-    # Clear existing messages
     for widget in message_frame.winfo_children():
         widget.destroy()
         update_nexabot()  
     
-    # Reset frame geometry
     message_frame.update_idletasks()
     message_frame.config(width=canvas.winfo_width(), height=0)
     
-    # Update canvas dimensions
     canvas.configure(scrollregion=(0, 0, canvas.winfo_width(), 1))
     canvas.yview_moveto(0)
     
-    # Force UI refresh
     canvas.update_idletasks()
     message_frame.update_idletasks()
 
@@ -688,11 +669,9 @@ def refresh_sidebar():
     chat_dir = os.path.join(exe_dir, "chats") 
     chat_files = sorted(os.listdir(chat_dir), key=lambda x: os.path.getmtime(os.path.join(chat_dir, x)), reverse=True) if os.path.exists(chat_dir) else []
 
-    # Load cross icon
     cross_img = Image.open(resource_path(r"icons\close.png")).resize((20, 20))
     cross_icon = ImageTk.PhotoImage(cross_img)
 
-    # Add buttons with fixed width
     for file_name in chat_files:
         if not file_name.endswith('.json'):
             continue
@@ -700,7 +679,6 @@ def refresh_sidebar():
         btn_container = tk.Frame(new_chat_history_frame,width=10, bg=dark_gray)
         btn_container.pack(padx=5, pady=2)
 
-        # Chat button
         btn = tk.Button(
             btn_container,
             text=os.path.splitext(file_name)[0].replace("chat_", "").replace("_", " "),
@@ -715,7 +693,6 @@ def refresh_sidebar():
         )
         btn.pack(side=tk.LEFT,expand=True)
 
-        # Delete button
         delete_btn = tk.Button(
             btn_container,
             image=cross_icon,
@@ -724,20 +701,17 @@ def refresh_sidebar():
             relief="flat",
             command=lambda f=file_name: delete_chat_history(f)
         )
-        delete_btn.image = cross_icon  # Keep reference
+        delete_btn.image = cross_icon  
         delete_btn.pack(side=tk.RIGHT, padx=(2,0))
 
-        # Bind hover effects
         btn.bind("<Enter>", lambda e, b=btn: b.config(bg="#707070"))
         btn.bind("<Leave>", lambda e, b=btn: b.config(bg="#606060"))
         delete_btn.bind("<Enter>", lambda e, b=delete_btn: b.config(bg="#ff4444"))
         delete_btn.bind("<Leave>", lambda e, b=delete_btn: b.config(bg="#606060"))
 
-    # Force update scrollregion
     new_chat_history_canvas.update_idletasks()
     new_chat_history_canvas.configure(scrollregion=new_chat_history_canvas.bbox("all"))
 
-# New function to handle deletion
 def delete_chat_history(filename):
     filepath = os.path.join(exe_dir, "chats", filename)
     
@@ -745,7 +719,6 @@ def delete_chat_history(filename):
         if os.path.exists(filepath):
             if messagebox.askyesno("Confirm Delete", f"Are you sure you want to delete {filename}?"):
                 os.remove(filepath)
-            # If deleting current chat, clear UI
             if current_chat_title in filename:
                 start_new_chat()
             refresh_sidebar()
@@ -753,14 +726,13 @@ def delete_chat_history(filename):
         insert_message(f"Delete error: {str(e)}", "error")
 
 def update_nexabot():
-    # Update position and visibility
     canvas_width = canvas.winfo_width()
     canvas_height = canvas.winfo_height()
     canvas.coords(nexabot_id, canvas_width/2, canvas_height/2)
     if len(message_frame.winfo_children()) > 0:
-        canvas.itemconfigure(nexabot_id, fill="#2a2a2a")  # Hide
+        canvas.itemconfigure(nexabot_id, fill="#2a2a2a")  
     else:
-        canvas.itemconfigure(nexabot_id, fill="#787878")  # Show
+        canvas.itemconfigure(nexabot_id, fill="#787878") 
 
 def toggle_send_button():
     current_text = user_input.get("1.0", "end-1c").strip()
@@ -819,7 +791,6 @@ def side_bar_btn_with_canvas():
     def toggle_canvas3():
         slide_canvas(help_canvas, 'canvas3_visible')
 
-    # Button 1
     history_btn = tk.Button(sidebar, text="History", bg="#3a3a3a", fg="white", border=0,highlightthickness=0, 
                             relief="flat", anchor="center", font=("Arial", 12), width=26,
                             command=toggle_canvas1)
@@ -879,23 +850,19 @@ def side_bar_btn_with_canvas():
 
 
 
-    # Button 2
     setting_btn = tk.Button(sidebar, text="Settings", bg="#3a3a3a", fg="white", border=0,highlightthickness=0, 
                             relief="flat", anchor="center", font=("Arial", 12), width=26,
                             command=toggle_canvas2)
     setting_btn.pack(pady=(2,2),padx=5, anchor='w')
 
-    # Canvas 2
     setting_canvas = tk.Canvas(sidebar, height=0,width=234, bg=dark_gray, border=1,highlightthickness=1)
     setting_canvas.pack(pady=0,padx=5, anchor='w')
 
-    # Button 3
     help_btn = tk.Button(sidebar, text="Help", bg="#3a3a3a", fg="white", border=0,highlightthickness=0, 
                             relief="flat", anchor="center", font=("Arial", 12), width=26,
                             command=toggle_canvas3)
     help_btn.pack(pady=(2,2),padx=5, anchor='w')
 
-    # Canvas 3
     help_canvas = tk.Canvas(sidebar, height=0,width=234, bg=dark_gray, border=1,highlightthickness=1)
     help_canvas.pack(pady=0,padx=5, anchor='w')
     
@@ -970,8 +937,6 @@ title_label = tk.Label(
 toggle_button.pack(in_=top_frame, side=tk.LEFT, padx=10)
 title_label.pack(in_=top_frame, side=tk.LEFT, expand=True, fill=tk.X, padx=10)
 new_chat_button.pack(in_=top_frame, side=tk.RIGHT, padx=10)
-
-# add_sidebar_buttons()
 
 frame = tk.Frame(all_frame, bg="#1a1a1a")
 frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=(5, 0))
